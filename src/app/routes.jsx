@@ -2,6 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
 import Poems from "../pages/Poems";
 import Videos from "../pages/Videos";
+import Video from "../pages/Video";
 import Live from "../pages/Live";
 import Invite from "../pages/Invite";
 import SecretLogin from "../pages/SecretLogin";
@@ -26,6 +27,7 @@ export default function AppRoutes() {
       <Route path="/poems" element={<Poems />} />
       <Route path="/poems/:id" element={<PoemPage />} />
       <Route path="/videos" element={<Videos />} />
+      <Route path="/videos/:id" element={<Video />} />
       <Route path="/live" element={<Live />} />
       <Route path="/invite" element={<Invite />} />
       <Route path="/brand" element={<Brand />} />

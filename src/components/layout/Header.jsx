@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
+import { fetchVideoById } from "../../lib/db";
 
 function titleFromPath(pathname) {
   if (!pathname) return '';
@@ -35,7 +36,35 @@ function titleFromPath(pathname) {
 export default function Header() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
-  const pageTitle = titleFromPath(location.pathname);
+  const segments = location.pathname.split('/').filter(Boolean);
+
+
+  let pageTitle = titleFromPath(location.pathname);
+
+  // Computed title state used when viewing a single video
+  const [computedTitle, setComputedTitle] = useState('');
+
+  // If viewing a specific video page (/videos/:id), fetch that single video's title
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      if (segments[0] !== 'videos' || !segments[1]) return;
+      try {
+        const { data, error } = await fetchVideoById(segments[1]);
+        if (error) return;
+        if (!mounted) return;
+        if (data && data.title) {
+          setComputedTitle(data.title);
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, [location.pathname]);
+
+  if (computedTitle) pageTitle = computedTitle;
 
   return (
     <>

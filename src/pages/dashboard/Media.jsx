@@ -173,7 +173,6 @@ export default function DashboardMedia() {
 
   return (
     <div style={{ display: 'grid', gap: 12 }}>
-      <CreatePost onCreate={handleCreate} />
 
       {recentUploads.length > 0 && (
         <div>

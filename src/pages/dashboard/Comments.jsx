@@ -11,11 +11,18 @@ export default function DashboardComments() {
           const body = c.message || c.body || "";
           const date = formatDateTime(c.created_at || c.date);
           const approved = c.is_approved === true || c.approved === true;
+          const contentType = c.content_type || 'comment';
+          const contentLabel = contentType === 'poem' ? '📝 Poem' : contentType === 'video' ? '🎥 Video' : 'Comment';
           return (
           <div key={c.id} className="card">
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <strong>{name}</strong>
-              <small style={{ color: 'var(--muted)' }}>{date}</small>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+              <div>
+                <strong>{name}</strong>
+                <div style={{ color: 'var(--muted)', fontSize: 12, marginTop: 3 }}>
+                  {contentLabel} • {date}
+                </div>
+              </div>
+              {!approved && <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 'bold' }}>Pending</span>}
             </div>
             <div style={{ marginTop: 8 }}>{body}</div>
             <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>

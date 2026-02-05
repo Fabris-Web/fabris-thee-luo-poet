@@ -144,21 +144,37 @@ export default function Dashboard() {
 
   const addVideo = async (v) => {
     try {
-      // Normalize input: accept a raw YouTube ID or a full URL but require an ID
       const raw = (v.youtubeId || v.youtube_url || v.url || '').trim();
-      const extractedId = parseYouTubeId(raw);
-
-      if (!extractedId) {
-        throw new Error('Please provide a valid YouTube ID or URL (e.g. oXqvFVFRHUY or https://youtu.be/oXqvFVFRHUY)');
+      
+      // Determine platform and extract/validate URL accordingly
+      let videoUrl = raw;
+      let extractedId = null;
+      
+      if (raw.includes('youtube.com') || raw.includes('youtu.be')) {
+        // YouTube: extract and validate ID
+        extractedId = parseYouTubeId(raw);
+        if (!extractedId) {
+          throw new Error('Invalid YouTube URL. Please provide a valid YouTube ID or URL (e.g. dQw4w9WgXcQ or https://youtu.be/dQw4w9WgXcQ)');
+        }
+        videoUrl = getYouTubeWatchUrl(extractedId);
+      } else if (raw.includes('tiktok.com') || raw.includes('vt.tiktok.com')) {
+        // TikTok: store URL as-is (accept both full URLs and shortened share links)
+        videoUrl = raw;
+      } else if (raw.includes('facebook.com')) {
+        // Facebook: store URL as-is
+        if (!raw.includes('video')) {
+          throw new Error('Invalid Facebook URL. Please provide a valid Facebook video URL.');
+        }
+        videoUrl = raw;
+      } else {
+        throw new Error('Please provide a valid video URL (YouTube, TikTok, or Facebook)');
       }
 
-      const youtubeUrl = getYouTubeWatchUrl(extractedId);
-
-      // Insert using `youtube_url` (most schemas use snake_case column names)
+      // Insert using `youtube_url` (generic column for any platform)
       const primaryPayload = {
-        title: v.title || `Video ${extractedId}`,
+        title: v.title || `Video`,
         description: v.description || null,
-        youtube_url: youtubeUrl,
+        youtube_url: videoUrl,
         video_type: v.video_type || "long",
         is_published: typeof v.is_published === "boolean" ? v.is_published : true,
         created_at: v.date || new Date().toISOString(),
@@ -169,8 +185,8 @@ export default function Dashboard() {
       // Fallback for older schemas (youtubeId/date/type)
       if (!result.success && /column|does not exist/i.test(String(result.error || ""))) {
         const fallbackPayload = {
-          title: v.title || `Video ${extractedId}`,
-          youtubeId: extractedId,
+          title: v.title || `Video`,
+          youtubeId: extractedId || raw, // For old schema, use extracted ID or raw URL
           type: v.video_type || "long",
           date: v.date || new Date().toISOString().slice(0, 10),
         };

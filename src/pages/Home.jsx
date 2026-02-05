@@ -3,17 +3,20 @@ import { useSupabaseQuery } from "../lib/db";
 import { Link } from "react-router-dom";
 import Loader from "../components/Loader";
 import { getYouTubeThumb } from "../lib/youtube";
+import { useState } from "react";
 
 export default function Home() {
   const { data: poems = [], loading: loadingPoems } = useSupabaseQuery('poems');
   const { data: videos = [], loading: loadingVideos } = useSupabaseQuery('videos');
   const { data: liveSettings = [], loading: loadingLive } = useSupabaseQuery('live_settings');
+  const [videoThumbError, setVideoThumbError] = useState(false);
 
   const featuredPoem = (poems && poems[0]) || null;
   const featuredVideo = (videos && videos[0]) || null;
   const liveActive = (liveSettings && liveSettings[0] && liveSettings[0].enabled) || false;
 
   const isLoading = loadingPoems || loadingVideos || loadingLive;
+  const videoThumb = videoThumbError ? "/FLP.jpeg" : (getYouTubeThumb(featuredVideo?.youtubeId || featuredVideo?.youtube_url || "") || "/FLP.jpeg");
 
   return (
     <div className="page">
@@ -58,8 +61,9 @@ export default function Home() {
                 <h5 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--muted)' }}>Video</h5>
                 <div style={{ borderRadius: 8, overflow: 'hidden', marginBottom: 12 }}>
                   <img
-                    src={getYouTubeThumb(featuredVideo.youtubeId || featuredVideo.youtube_url || "") || "/FLP.jpeg"}
+                    src={videoThumb}
                     alt={featuredVideo.title}
+                    onError={() => setVideoThumbError(true)}
                     style={{ width: '100%', height: 'auto' }}
                   />
                 </div>
