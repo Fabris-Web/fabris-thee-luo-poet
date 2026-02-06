@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { getYouTubeThumb } from "../lib/youtube";
-import { formatDate, pickDateField } from "../lib/format";
+import { formatDate, pickDateField, trimToWords } from "../lib/format";
 
 export default function VideoCard({ video, onOpen }) {
   const [thumbError, setThumbError] = useState(false);
@@ -25,7 +25,7 @@ export default function VideoCard({ video, onOpen }) {
             />
           </div>
           <div style={{ flex: "1", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 8 }}>
-            <h4 style={{ margin: 0, fontSize: "1rem" }}>{video.title}</h4>
+            <h4 style={{ margin: 0, fontSize: "1rem" }}>{trimToWords(video.title)}</h4>
             <small style={{ color: "var(--muted)" }}>{displayDate}</small>
           </div>
         </div>
@@ -37,7 +37,7 @@ export default function VideoCard({ video, onOpen }) {
   return (
     <article className="list-card">
       <div style={{ flex: "0 0 55%", display: "flex", flexDirection: "column", gap: 8 }}>
-        <h4 style={{ margin: 0 }}>{video.title}</h4>
+        <h4 style={{ margin: 0 }}>{trimToWords(video.title)}</h4>
         <img
           src={thumb}
           alt="thumbnail"

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, createContext, useContext } from "react";
 import { useLocation, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthProvider";
 import { useSupabaseQuery, insertRecord, updateRecord, deleteRecord, deleteAll } from "../lib/db";
+import { useToast } from '../context/ToastProvider';
 import { getYouTubeWatchUrl, parseYouTubeId } from "../lib/youtube";
 
 // Create context to pass dashboard state to child pages
@@ -33,6 +34,8 @@ export default function Dashboard() {
   const { data: liveSettings = [], loading: loadingLive, refetch: refetchLive } = useSupabaseQuery('live_settings');
   const { data: notifications = [], loading: loadingNotifications, refetch: refetchNotifications } = useSupabaseQuery('notifications');
 
+  const addToast = useToast();
+
   // Debug: Log data state for troubleshooting in dev only
   useEffect(() => {
     if (!import.meta.env.DEV) return;
@@ -49,8 +52,11 @@ export default function Dashboard() {
   const counts = useMemo(() => ({
     poems: (poems || []).length || 0,
     videos: (videos || []).length || 0,
-    comments: (comments || []).length || 0,
-     invites: (invites || []).filter(i => !i.is_read).length || 0,
+    // `comments` count represents new/unread comments for notifications
+    comments: (comments || []).filter(c => !c.is_read).length || 0,
+    // total comments available if needed elsewhere
+    totalComments: (comments || []).length || 0,
+    invites: (invites || []).filter(i => !i.is_read).length || 0,
   }), [poems, videos, comments, invites]);
 
   // Update title based on the current route
@@ -238,17 +244,55 @@ export default function Dashboard() {
     }
   };
 
+  const toggleApproveComment = async (id, current) => {
+    try {
+      const result = await updateRecord('comments', id, { is_approved: !current });
+      if (result.success) {
+        console.log('✓ Comment approval toggled');
+        await refetchComments();
+        try { addToast('Comment approval updated', 'success'); } catch(e){}
+      } else {
+        console.error('✗ Failed to toggle approve:', result.error);
+        try { addToast('Failed to toggle approval', 'error'); } catch(e){}
+      }
+    } catch (e) {
+      console.error('✗ Exception toggling approve:', e);
+      try { addToast('Error toggling approval', 'error'); } catch(e){}
+    }
+  };
+
   const removeComment = async (id) => {
     try {
       const result = await deleteRecord('comments', id);
       if (result.success) {
         console.log('✓ Comment removed');
-        setTimeout(() => refetchComments(), 300);
+        await refetchComments();
+        try { addToast('Comment deleted', 'success'); } catch(e){}
       } else {
         console.error('✗ Failed to remove comment:', result.error);
+        try { addToast('Failed to delete comment', 'error'); } catch(e){}
       }
     } catch (e) {
       console.error('✗ Exception removing comment:', e);
+      try { addToast('Error deleting comment', 'error'); } catch(e){}
+    }
+  };
+
+  const markCommentRead = async (id) => {
+    try {
+      const result = await updateRecord('comments', id, { is_read: true });
+      if (result.success) {
+        console.log('✓ Comment marked read');
+        // Refresh comments immediately so UI updates promptly
+        await refetchComments();
+        try { addToast('Comment marked read', 'success'); } catch(e){}
+      } else {
+        console.error('✗ Failed to mark comment read:', result.error);
+        try { addToast('Failed to mark read', 'error'); } catch(e){}
+      }
+    } catch (e) {
+      console.error('✗ Exception marking comment read:', e);
+      try { addToast('Error marking read', 'error'); } catch(e){}
     }
   };
 
@@ -312,7 +356,7 @@ export default function Dashboard() {
     counts,
     addPoem, updatePoem, deletePoem,
     addVideo, deleteVideo,
-    approveComment, removeComment, clearAllInvites,
+    approveComment, toggleApproveComment, removeComment, markCommentRead, clearAllInvites,
     addMediaAsset, deleteMediaAsset,
     formatDate,
     signOut,

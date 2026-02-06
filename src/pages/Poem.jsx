@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useSupabaseQuery, insertRecord } from "../lib/db";
-import { formatDate, formatDateTime, pickDateField } from "../lib/format";
+import { formatDate, formatDateTime, pickDateField, trimToWords } from "../lib/format";
 
 export default function PoemPage(){
   const { id } = useParams();
@@ -59,7 +59,7 @@ export default function PoemPage(){
           {(poemsData || []).map(p => (
             <Link key={p.id} to={`/poems/${p.id}`} style={{ textDecoration: 'none' }} className="list-card">
               <div className="meta">
-                <h4 style={{ margin: 0 }}>{p.title}</h4>
+                <h4 style={{ margin: 0 }}>{trimToWords(p.title)}</h4>
                 <div style={{ color:'var(--muted)' }}>{p.date}</div>
               </div>
             </Link>

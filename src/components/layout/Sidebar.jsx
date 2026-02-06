@@ -44,12 +44,12 @@ export default function Sidebar({ open, onClose }) {
       </nav>
 
       <div className="sidebar-footer">
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'dark' ? '🌙 Dark' : '🌞 Light'}
-          </button>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
+              {theme === 'dark' ? '🌙 Dark' : '🌞 Light'}
+            </button>
 
-          <AuthControls />
+          <AuthControls onClose={onClose} />
         </div>
       </div>
       </aside>
@@ -57,13 +57,20 @@ export default function Sidebar({ open, onClose }) {
   );
 }
 
-function AuthControls() {
+function AuthControls({ onClose }) {
   const { user, signOut } = useAuth();
 
   // Only show sign-out if user is authenticated
   if (!user) return null;
 
+  const handleSignOut = async () => {
+    const res = await signOut();
+    if (res && res.success) {
+      if (typeof onClose === 'function') onClose();
+    }
+  };
+
   return (
-    <button onClick={() => signOut()} className="btn">Sign out</button>
+    <button onClick={handleSignOut} className="btn">Sign out</button>
   );
 }

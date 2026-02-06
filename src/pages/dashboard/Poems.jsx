@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useDashboardContext, formatDate } from "../Dashboard";
-import { formatDate as formatDisplayDate, pickDateField } from "../../lib/format";
+import { formatDate as formatDisplayDate, pickDateField, trimToWords } from "../../lib/format";
 
 function PoemManager({ poems, onAdd, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(null);
@@ -34,7 +34,7 @@ function PoemManager({ poems, onAdd, onUpdate, onDelete }) {
         {poems.length === 0 ? <div style={{ color: 'var(--muted)' }}>No poems yet.</div> : poems.map(p => (
           <div key={p.id} className="card" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <div>
-              <strong>{p.title}</strong>
+              <strong>{trimToWords(p.title)}</strong>
               <div style={{ color:'var(--muted)', fontSize: '0.85rem' }}>{formatDisplayDate(pickDateField(p))}</div>
             </div>
             <div style={{ display:'flex', gap:8 }}>

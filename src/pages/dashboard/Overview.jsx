@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useDashboardContext } from "../Dashboard";
-import { formatDate, pickDateField } from "../../lib/format";
+import { formatDate, pickDateField, trimToWords } from "../../lib/format";
 
 export default function DashboardOverview() {
   const { counts, poems = [], videos = [], comments = [], invites = [] } = useDashboardContext();
@@ -46,7 +46,7 @@ export default function DashboardOverview() {
             {poems.slice(0, 3).map(p => (
               <div key={p.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <strong>{p.title}</strong>
+                  <strong>{trimToWords(p.title)}</strong>
                   <div style={{ color: 'var(--muted)', fontSize: 12 }}>{formatDate(pickDateField(p))}</div>
                 </div>
               </div>
@@ -64,7 +64,7 @@ export default function DashboardOverview() {
             {videos.slice(0, 3).map(v => (
               <div key={v.id} className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <strong>{v.title}</strong>
+                  <strong>{trimToWords(v.title)}</strong>
                   <div style={{ color: 'var(--muted)', fontSize: 12 }}>{formatDate(pickDateField(v))}</div>
                 </div>
               </div>

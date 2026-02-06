@@ -3,6 +3,7 @@ import { useSupabaseQuery } from "../lib/db";
 import { Link } from "react-router-dom";
 import Loader from "../components/Loader";
 import { getYouTubeThumb } from "../lib/youtube";
+import { trimToWords } from "../lib/format";
 import { useState } from "react";
 
 export default function Home() {
@@ -49,7 +50,7 @@ export default function Home() {
             {featuredPoem && (
               <div>
                 <h5 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--muted)' }}>Poem</h5>
-                <h3 style={{ margin: '6px 0 4px' }}>{featuredPoem.title}</h3>
+                <h3 style={{ margin: '6px 0 4px' }}>{trimToWords(featuredPoem.title)}</h3>
                 <p style={{ color: 'var(--muted)', marginBottom: 12 }}>{featuredPoem.body.split('\n').slice(0, 2).join(' ')}</p>
                 <Link to={`/poems/${featuredPoem.id}`} className="btn-primary">Read</Link>
               </div>
@@ -67,7 +68,7 @@ export default function Home() {
                     style={{ width: '100%', height: 'auto' }}
                   />
                 </div>
-                <h3 style={{ margin: '6px 0 4px' }}>{featuredVideo.title}</h3>
+                <h3 style={{ margin: '6px 0 4px' }}>{trimToWords(featuredVideo.title)}</h3>
                 <Link to="/videos" className="btn-primary">Watch</Link>
               </div>
             )}

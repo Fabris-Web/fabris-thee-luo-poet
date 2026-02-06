@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import { fetchVideoById } from "../../lib/db";
+import { trimToWords } from "../../lib/format";
 
 function titleFromPath(pathname) {
   if (!pathname) return '';
@@ -47,8 +48,14 @@ export default function Header() {
   // If viewing a specific video page (/videos/:id), fetch that single video's title
   useEffect(() => {
     let mounted = true;
+    
+    // If NOT on videos/:id page, clear computed title
+    if (segments[0] !== 'videos' || !segments[1]) {
+      setComputedTitle('');
+      return;
+    }
+
     const load = async () => {
-      if (segments[0] !== 'videos' || !segments[1]) return;
       try {
         const { data, error } = await fetchVideoById(segments[1]);
         if (error) return;
@@ -76,7 +83,7 @@ export default function Header() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-          <div style={{ textAlign: 'center', fontWeight: 700 }}>{pageTitle}</div>
+          <div style={{ textAlign: 'center', fontWeight: 700 }}>{trimToWords(pageTitle)}</div>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>

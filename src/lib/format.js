@@ -41,3 +41,16 @@ export function pickDateField(record) {
   if (!record) return "";
   return record.created_at || record.updated_at || record.published_at || "";
 }
+
+/**
+ * Trim text to a maximum of 4 words, with ellipsis if truncated
+ * @param {string} text - Text to trim
+ * @param {number} maxWords - Maximum number of words (default 4)
+ * @returns {string} Trimmed text with ellipsis if needed, or original if within limit
+ */
+export function trimToWords(text, maxWords = 4) {
+  if (!text) return "";
+  const words = text.trim().split(/\s+/);
+  if (words.length <= maxWords) return text;
+  return words.slice(0, maxWords).join(" ") + "...";
+}

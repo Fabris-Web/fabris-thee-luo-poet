@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDashboardContext, formatDate } from "../Dashboard";
 import { getYouTubeWatchUrl, fetchYouTubeMetadata, fetchTikTokMetadata } from "../../lib/youtube";
-import { formatDate as formatDisplayDate, pickDateField } from "../../lib/format";
+import { formatDate as formatDisplayDate, pickDateField, trimToWords } from "../../lib/format";
 import { updateRecord } from "../../lib/db";
 
 function VideoManager({ videos, onAdd, onDelete }) {
@@ -157,7 +157,7 @@ function VideoManager({ videos, onAdd, onDelete }) {
         {videos.length === 0 ? <div style={{ color:'var(--muted)' }}>No videos yet.</div> : videos.map(v => (
           <div key={v.id} className="card" style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <div>
-              <strong>{videoTitles[v.id] || v.title || 'Loading title...'}</strong>
+              <strong>{trimToWords(videoTitles[v.id] || v.title || 'Loading title...')}</strong>
               <div style={{ color:'var(--muted)' }}>{formatDisplayDate(pickDateField(v))}</div>
             </div>
             <div style={{ display:'flex', gap:8 }}>

@@ -71,22 +71,7 @@ export function useSupabaseQuery(table, options = {}) {
         console.error(`Error fetching ${table}:`, err);
         setError(err);
       } else {
-        // If fetching videos, trim long titles immediately so callers
-        // (like the Header) don't need to perform trimming logic.
-        if (table === 'videos' && Array.isArray(result)) {
-          const maxLen = 60;
-          const normalize = (row) => {
-            if (!row) return row;
-            const videoType = row.video_type || row.type || 'long';
-            if (row.title && videoType === 'long' && row.title.length > maxLen) {
-              return { ...row, title: row.title.slice(0, maxLen) + '...' };
-            }
-            return row;
-          };
-          setData((result || []).map(normalize));
-        } else {
-          setData(result || []);
-        }
+        setData(result || []);
       }
     } catch (e) {
       console.error(`Fetch error for ${table}:`, e);
@@ -117,12 +102,6 @@ export async function fetchVideoById(id) {
     if (error) return { data: null, error };
 
     if (!data) return { data: null };
-
-    const maxLen = 60;
-    const videoType = data.video_type || data.type || 'long';
-    if (data.title && videoType === 'long' && data.title.length > maxLen) {
-      return { data: { ...data, title: data.title.slice(0, maxLen) + '...' } };
-    }
 
     return { data };
   } catch (e) {
