@@ -12,14 +12,14 @@ function titleFromPath(pathname) {
   if (segments[0] === 'dashboard') {
     if (segments.length === 1) return 'Dashboard';
       const map = {
-      poems: 'Poems',
-      videos: 'Videos',
-      live: 'Live',
-      comments: 'Comments',
-      invites: 'Invites',
-      notifications: 'Notifications',
-      settings: 'Settings',
-    };
+        poems: 'Poems',
+        videos: 'Videos',
+        live: 'Live',
+        comments: 'Comments',
+        invites: 'Invites',
+        notifications: 'Notifications',
+        profile: 'Profile',
+      };
     return map[segments[1]] || 'Dashboard';
   }
 

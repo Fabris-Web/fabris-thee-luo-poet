@@ -40,7 +40,7 @@ export default function AppRoutes() {
         <Route path="invites" element={<DashboardInvites />} />
         <Route path="notifications" element={<DashboardNotifications />} />
         <Route path="library" element={<DashboardMediaLibrary />} />
-        <Route path="settings" element={<DashboardSettings />} />
+        <Route path="profile" element={<DashboardSettings />} />
       </Route>
     </Routes>
   );
