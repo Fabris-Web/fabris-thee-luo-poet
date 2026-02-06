@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Sidebar from "./Sidebar";
-import { fetchVideoById } from "../../lib/db";
+import { fetchVideoById, useSupabaseQuery } from "../../lib/db";
 import { trimToWords } from "../../lib/format";
 
 function titleFromPath(pathname) {
@@ -38,12 +38,10 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const segments = location.pathname.split('/').filter(Boolean);
-
+  const [computedTitle, setComputedTitle] = useState('');
+  const { data: poems = [] } = useSupabaseQuery('poems');
 
   let pageTitle = titleFromPath(location.pathname);
-
-  // Computed title state used when viewing a single video
-  const [computedTitle, setComputedTitle] = useState('');
 
   // If viewing a specific video page (/videos/:id), fetch that single video's title
   useEffect(() => {
@@ -70,6 +68,21 @@ export default function Header() {
     load();
     return () => { mounted = false; };
   }, [location.pathname]);
+
+  // If viewing a specific poem page (/poems/:id), get the poem title from data
+  useEffect(() => {
+    if (segments[0] !== 'poems' || !segments[1]) {
+      setComputedTitle('');
+      return;
+    }
+
+    const poem = poems.find(p => String(p.id) === String(segments[1]));
+    if (poem && poem.title) {
+      setComputedTitle(poem.title);
+    } else {
+      setComputedTitle('');
+    }
+  }, [location.pathname, poems]);
 
   if (computedTitle) pageTitle = computedTitle;
 

@@ -1,198 +1,308 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDashboardContext } from "../Dashboard";
 import { uploadFile } from "../../lib/supabaseStorage";
+import { insertRecord, updateRecord } from "../../lib/db";
+import { useToast } from "../../context/ToastProvider";
+import { trimToWords } from "../../lib/format";
 
-function CreatePost({ onCreate }) {
-  const [type, setType] = useState('post');
-  const [mode, setMode] = useState('url');
-  const [title, setTitle] = useState('');
-  const [text, setText] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [fileData, setFileData] = useState(null);
+export default function DashboardMedia() {
+  const ctx = useDashboardContext();
+  const { poems = [], videos = [], profiles = [] } = ctx;
+  const [tab, setTab] = useState('posts'); // 'posts', 'videos', 'profile'
+
+  const profile = profiles?.[0];
+  const photoHistory = profile?.photo_history || [];
+  const activePhoto = photoHistory.find(p => p.is_active);
+
+  return (
+    <div style={{ display: 'grid', gap: 12 }}>
+      <ProfilePhotos />
+
+      <div>
+        <h3>Content Library</h3>
+        
+        {/* Mini Nav */}
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
+          <button 
+            onClick={() => setTab('posts')}
+            style={{ 
+              padding: '8px 16px', 
+              borderRadius: 6, 
+              border: 'none',
+              background: tab === 'posts' ? 'var(--accent)' : 'transparent',
+              color: tab === 'posts' ? 'white' : 'var(--text)',
+              cursor: 'pointer',
+              fontWeight: tab === 'posts' ? 'bold' : 'normal'
+            }}
+          >
+            📝 Posts ({poems.length})
+          </button>
+          <button 
+            onClick={() => setTab('videos')}
+            style={{ 
+              padding: '8px 16px', 
+              borderRadius: 6, 
+              border: 'none',
+              background: tab === 'videos' ? 'var(--accent)' : 'transparent',
+              color: tab === 'videos' ? 'white' : 'var(--text)',
+              cursor: 'pointer',
+              fontWeight: tab === 'videos' ? 'bold' : 'normal'
+            }}
+          >
+            🎬 Videos ({videos.length})
+          </button>
+          <button 
+            onClick={() => setTab('profile')}
+            style={{ 
+              padding: '8px 16px', 
+              borderRadius: 6, 
+              border: 'none',
+              background: tab === 'profile' ? 'var(--accent)' : 'transparent',
+              color: tab === 'profile' ? 'white' : 'var(--text)',
+              cursor: 'pointer',
+              fontWeight: tab === 'profile' ? 'bold' : 'normal'
+            }}
+          >
+            🖼️ Images ({photoHistory.length})
+          </button>
+        </div>
+
+        {/* Posts Tab */}
+        {tab === 'posts' && (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {poems.length === 0 ? (
+              <div style={{ color: 'var(--muted)', textAlign: 'center', padding: 20 }}>
+                No poems yet. Create some in the Poems section!
+              </div>
+            ) : (
+              poems.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(poem => (
+                <div key={poem.id} className="card" style={{ padding: 12 }}>
+                  <strong style={{ fontSize: '1rem' }}>{trimToWords(poem.title, 4)}</strong>
+                  <small style={{ display: 'block', color: 'var(--muted)', marginTop: 4 }}>
+                    {new Date(poem.created_at).toLocaleDateString()}
+                  </small>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Videos Tab */}
+        {tab === 'videos' && (
+          <div style={{ display: 'grid', gap: 8 }}>
+            {videos.length === 0 ? (
+              <div style={{ color: 'var(--muted)', textAlign: 'center', padding: 20 }}>
+                No videos yet. Add some in the Videos section!
+              </div>
+            ) : (
+              videos.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(video => (
+                <div key={video.id} className="card" style={{ padding: 12 }}>
+                  <strong style={{ fontSize: '1rem' }}>{trimToWords(video.title, 4)}</strong>
+                  <small style={{ display: 'block', color: 'var(--muted)', marginTop: 4 }}>
+                    {new Date(video.created_at).toLocaleDateString()}
+                  </small>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Profile Images Tab */}
+        {tab === 'profile' && (
+          photoHistory.length === 0 ? (
+            <div style={{ color: 'var(--muted)', textAlign: 'center', padding: 20 }}>
+              No profile images uploaded yet.
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+              {photoHistory.map((photo, idx) => (
+                <div key={idx} style={{ 
+                  position: 'relative',
+                  paddingBottom: '100%',
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  background: 'var(--surface)',
+                  border: photo.is_active ? '3px solid var(--accent)' : '1px solid var(--border)'
+                }}>
+                  <img 
+                    src={photo.url} 
+                    alt="profile" 
+                    style={{ 
+                      position: 'absolute', 
+                      inset: 0, 
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover' 
+                    }}
+                    onError={(e) => { e.target.src = '/MyLogo.png'; }}
+                  />
+                  {photo.is_active && (
+                    <div style={{ 
+                      position: 'absolute', 
+                      bottom: 0, 
+                      left: 0, 
+                      right: 0, 
+                      background: 'rgba(0,0,0,0.6)', 
+                      color: 'var(--accent)',
+                      padding: 4,
+                      textAlign: 'center',
+                      fontSize: '0.8rem',
+                      fontWeight: 'bold'
+                    }}>
+                      ✓ Active
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ProfilePhotos() {
+  const { profiles = [], refetchProfiles } = useDashboardContext();
+  const { addToast } = useToast();
+  const profile = profiles?.[0];
   const [uploading, setUploading] = useState(false);
+  const [photoHistory, setPhotoHistory] = useState(profile?.photo_history || []);
 
-  const reset = () => { setTitle(''); setText(''); setImageUrl(''); setFileData(null); setType('post'); setMode('url'); };
+  // Sync photoHistory when profile data changes
+  useEffect(() => {
+    setPhotoHistory(profile?.photo_history || []);
+  }, [profile?.photo_history]);
 
-  const handleFile = (file) => {
-    if (!file) return setFileData(null);
-    // Store file object, not data URL
-    setFileData(file);
-  };
 
-  const submit = async (e) => {
-    e && e.preventDefault();
-    
-    // Validate required fields
-    if (!title.trim()) {
-      alert('Please enter a title');
-      return;
-    }
-    
-    if (type === 'post' && !text.trim() && !imageUrl && !fileData) {
-      alert('Please add text, image URL, or upload an image');
-      return;
-    }
-    
-    if ((type === 'long' || type === 'short') && mode === 'url' && !imageUrl.trim()) {
-      alert('Please enter a video URL');
-      return;
-    }
-    
-    if ((type === 'long' || type === 'short') && mode === 'file') {
-      alert('Video file uploads are not supported; please provide a YouTube URL instead.');
-      return;
-    }
-    
+  const handleUploadProfilePhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     setUploading(true);
-
     try {
-      const date = new Date().toISOString();
-      const content = {};
-
-      if (type === 'post') {
-        content.text = text;
-
-        // Upload image if file is selected
-        if (fileData) {
-          const uploadRes = await uploadFile(fileData, 'media', 'posts');
-          if (!uploadRes.success) {
-            alert('Failed to upload image: ' + uploadRes.error);
-            setUploading(false);
-            return;
-          }
-          content.image = uploadRes.url;
-        } else if (imageUrl) {
-          content.image = imageUrl;
-        } else {
-          content.image = null;
-        }
-      } else {
-        // For videos
-        if (mode === 'url') {
-          content.url = imageUrl || null;
-        } else if (fileData) {
-          // Upload video file
-          const uploadRes = await uploadFile(fileData, 'media', 'videos');
-          if (!uploadRes.success) {
-            alert('Failed to upload video: ' + uploadRes.error);
-            setUploading(false);
-            return;
-          }
-          content.file = uploadRes.url;
-        } else {
-          content.file = null;
-        }
+      // Upload to storage
+      const uploadRes = await uploadFile(file, 'media', 'profile-photos');
+      if (!uploadRes.success) {
+        addToast('Failed to upload profile photo: ' + uploadRes.error, 'error');
+        setUploading(false);
+        return;
       }
 
-      onCreate({ type: type === 'post' ? 'post' : (type === 'long' ? 'long' : 'short'), title, content, date });
-      reset();
+      const newPhotoUrl = uploadRes.url;
+      const timestamp = new Date().toISOString();
+
+      // Add to history array
+      const updatedHistory = [
+        { url: newPhotoUrl, uploaded_at: timestamp, is_active: true },
+        ...photoHistory.map(p => ({ ...p, is_active: false }))
+      ];
+
+      // Update profile with new photo history
+      if (profile?.id) {
+        const result = await updateRecord('profiles', profile.id, {
+          photo_history: updatedHistory,
+          updated_at: timestamp
+        });
+        
+        if (result.success) {
+          setPhotoHistory(updatedHistory);
+          addToast('Profile photo uploaded! (Old photos preserved)', 'success');
+          e.target.value = '';
+          setTimeout(() => refetchProfiles?.(), 300);
+        } else {
+          addToast('Error saving to database', 'error');
+        }
+      }
+    } catch (err) {
+      addToast('Error: ' + (err?.message || err), 'error');
     } finally {
       setUploading(false);
     }
   };
 
-  return (
-    <div className="card">
-      <h3>Create post</h3>
-      <form onSubmit={submit} style={{ display: 'grid', gap: 8 }}>
-        <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-          <button type="button" className={type === 'post' ? 'btn-primary' : ''} onClick={() => setType('post')} style={{ flex: 1 }}>📝 Text</button>
-          <button type="button" className={type === 'long' ? 'btn-primary' : ''} onClick={() => setType('long')} style={{ flex: 1 }}>🎬 Long Video</button>
-          <button type="button" className={type === 'short' ? 'btn-primary' : ''} onClick={() => setType('short')} style={{ flex: 1 }}>📱 Short Video</button>
-        </div>
-
-        <label>Title<input value={title} onChange={e=>setTitle(e.target.value)} placeholder="Optional title" /></label>
-
-        {type === 'post' && (
-          <>
-            <label>Text<textarea value={text} onChange={e=>setText(e.target.value)} placeholder="Write something..." /></label>
-            <label>Image URL<input value={imageUrl} onChange={e=>setImageUrl(e.target.value)} placeholder="/profile.svg or external" /></label>
-            <label>Or upload image<input type="file" accept="image/*" onChange={(e)=>e.target.files[0] && handleFile(e.target.files[0])} disabled={uploading} /></label>
-            {fileData && <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>📁 {fileData.name} ({(fileData.size / 1024).toFixed(1)} KB)</div>}
-          </>
-        )}
-
-        {(type === 'long' || type === 'short') && (
-          <>
-            <div style={{ display:'flex', gap:8, marginBottom: 8 }}>
-              <button type="button" className={mode === 'url' ? 'btn-primary' : ''} onClick={() => setMode('url')} style={{ flex: 1 }}>🔗 Embed URL</button>
-              <button type="button" className={mode === 'file' ? 'btn-primary' : ''} onClick={() => setMode('file')} style={{ flex: 1 }}>📁 Upload File</button>
-            </div>
-            {mode === 'url' && <label>Video URL<input value={imageUrl} onChange={e=>setImageUrl(e.target.value)} placeholder="https://youtube.com/..." /></label>}
-            {mode === 'file' && <label>Upload video file<input type="file" accept="video/*" onChange={(e)=>e.target.files[0] && handleFile(e.target.files[0])} disabled={uploading} /></label>}
-            {fileData && typeof fileData === 'object' && <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>📁 {fileData.name} ({(fileData.size / 1024 / 1024).toFixed(1)} MB)</div>}
-          </>
-        )}
-
-        <div style={{ display:'flex', gap:8 }}>
-          <button type="submit" className="btn-primary" disabled={uploading}>
-            {uploading ? 'Uploading...' : 'Create'}
-          </button>
-          <button type="button" onClick={reset} disabled={uploading}>Reset</button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-export default function DashboardMedia() {
-  const ctx = useDashboardContext();
-  const { mediaAssets = [], addMediaAsset, addVideo } = ctx;
-
-  // Map CreatePost output to either media_assets (images) or videos (YouTube URLs)
-  const handleCreate = async (post) => {
-    // prefer image/url/file in content
-    const fileUrl = post.content?.image || post.content?.file || post.content?.url || null;
-    if (!fileUrl) {
-      alert('No file/URL provided. Please enter a video URL or upload an image.');
-      return;
-    }
+  const handleActivatePhoto = async (photoUrl) => {
+    if (!profile?.id) return;
+    
+    const updatedHistory = photoHistory.map(p => ({
+      ...p,
+      is_active: p.url === photoUrl
+    }));
 
     try {
-      if (post.type === 'long' || post.type === 'short') {
-        // Video posts should use the videos table and accept YouTube URLs only
-        try {
-          await addVideo({ title: post.title, youtube_url: fileUrl, video_type: post.type === 'long' ? 'long' : 'short', date: post.date });
-          alert('Video added successfully!');
-        } catch (err) {
-          alert('Error adding video: ' + (err?.message || err));
-        }
-        return;
-      }
+      const result = await updateRecord('profiles', profile.id, {
+        photo_history: updatedHistory,
+        updated_at: new Date().toISOString()
+      });
 
-      // Otherwise treat as an image upload -> media_assets
-      await addMediaAsset({ asset_type: 'image', file_url: fileUrl });
-      alert('Media uploaded successfully!');
+      if (result.success) {
+        setPhotoHistory(updatedHistory);
+        addToast('Profile photo activated', 'success');
+        setTimeout(() => refetchProfiles?.(), 300);
+      } else {
+        addToast('Error updating photo', 'error');
+      }
     } catch (err) {
-      alert('Error uploading media: ' + (err?.message || err));
+      addToast('Error: ' + err.message, 'error');
     }
   };
 
-  // Show only the 5 most recent uploads
-  const recentUploads = (mediaAssets || []).slice(0, 5);
+  const activePhoto = photoHistory.find(p => p.is_active);
 
   return (
-    <div style={{ display: 'grid', gap: 12 }}>
+    <div className="card">
+      <h3>👤 Profile Photos</h3>
+      <p style={{ fontSize: '0.9rem', color: 'var(--muted)', marginBottom: 12 }}>Upload profile photos. New photos are automatically set as active. Older photos are preserved and can be reactivated anytime.</p>
+      
+      <form style={{ display: 'grid', gap: 8 }} onSubmit={e => e.preventDefault()}>
+        <label style={{ display: 'block' }}>
+          Upload new profile photo
+          <input type="file" accept="image/*" onChange={handleUploadProfilePhoto} disabled={uploading} style={{ marginTop: 4 }} />
+        </label>
+        {uploading && <div style={{ color: 'var(--accent)' }}>⏳ Uploading...</div>}
+      </form>
 
-      {recentUploads.length > 0 && (
-        <div>
-          <h3>Recently Uploaded</h3>
-          <div style={{ display: 'grid', gap: 8 }}>
-            {recentUploads.map(m => (
-              <div key={m.id} className="card" style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-                <div style={{ width: 80, height: 80, flexShrink: 0, borderRadius: 8, overflow: 'hidden', background: 'var(--surface)' }}>
-                  {m.file_url.match(/\.(mp4|webm|mov|avi)$/i) ? (
-                    <video src={m.file_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <img src={m.file_url} alt="asset" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  )}
+      {activePhoto && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+          <h4 style={{ marginBottom: 8 }}>✓ Currently Active</h4>
+          <div style={{ width: 140, height: 140, borderRadius: '50%', overflow: 'hidden', border: '3px solid var(--accent)', marginBottom: 12 }}>
+            <img src={activePhoto.url} alt="current profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = '/MyLogo.png'; console.error('Profile photo load error:', activePhoto.url); }} />
+          </div>
+          <small style={{ display: 'block', color: 'var(--muted)' }}>Uploaded: {new Date(activePhoto.uploaded_at).toLocaleDateString()}</small>
+        </div>
+      )}
+
+      {photoHistory.length > 1 && (
+        <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+          <h4 style={{ marginBottom: 12 }}>📸 Previous Versions ({photoHistory.length - 1})</h4>
+          <p style={{ fontSize: '0.85rem', color: 'var(--muted)', marginBottom: 12 }}>Click any photo to activate it</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))', gap: 8 }}>
+            {photoHistory.map((photo, idx) => (
+              <div key={idx} style={{ textAlign: 'center' }}>
+                <div style={{ 
+                  width: '100%', 
+                  paddingBottom: '100%', 
+                  position: 'relative', 
+                  cursor: photo.is_active ? 'default' : 'pointer',
+                  border: photo.is_active ? '3px solid var(--accent)' : '1px solid var(--border)',
+                  borderRadius: 8,
+                  overflow: 'hidden',
+                  background: 'var(--surface)',
+                  transition: 'border-color 0.2s'
+                }}>
+                  <img 
+                    src={photo.url} 
+                    alt="history" 
+                    style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', cursor: photo.is_active ? 'default' : 'pointer' }}
+                    onClick={() => !photo.is_active && handleActivatePhoto(photo.url)}
+                    onError={(e) => { e.target.src = '/MyLogo.png'; }}
+                    title={photo.is_active ? 'Currently active' : 'Click to activate'}
+                  />
                 </div>
-                <div style={{ flex: 1 }}>
-                  <strong>{m.asset_type}</strong>
-                  <small style={{ display: 'block', color: 'var(--muted)', marginTop: 4 }}>
-                    {new Date(m.created_at || m.updated_at).toLocaleDateString()}
-                  </small>
-                </div>
+                <small style={{ display: 'block', marginTop: 4, color: 'var(--muted)', fontSize: '0.7rem' }}>
+                  {new Date(photo.uploaded_at).toLocaleDateString()}
+                </small>
+                {photo.is_active && <small style={{ display: 'block', color: 'var(--accent)', fontSize: '0.7rem', fontWeight: 'bold' }}>✓ Active</small>}
               </div>
             ))}
           </div>

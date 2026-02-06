@@ -25,6 +25,10 @@ export default function Sidebar({ open, onClose }) {
             <Link to="/dashboard/upload" className={location.pathname === '/dashboard/upload' ? 'active' : ''} onClick={onClose}>📤 Upload</Link>
             <Link to="/dashboard/library" className={location.pathname === '/dashboard/library' ? 'active' : ''} onClick={onClose}>📚 Library</Link>
             <Link to="/dashboard/settings" className={location.pathname === '/dashboard/settings' ? 'active' : ''} onClick={onClose}>⚙️ Settings</Link>
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme" style={{ background: 'var(--accent)', border: 'none', textAlign: 'center', cursor: 'pointer', padding: '10px 16px', width: '100%', color: 'var(--text)', fontFamily: 'inherit' }}>
+              {theme === 'dark' ? '🌙 Dark' : '🌞 Light'}
+            </button>
+            <AuthControls onClose={onClose} />
           </>
         ) : (
           // Public site navigation
@@ -34,24 +38,13 @@ export default function Sidebar({ open, onClose }) {
             <Link to="/videos" className={location.pathname === '/videos' ? 'active' : ''} onClick={onClose}>Videos</Link>
             <Link to="/live" className={location.pathname === '/live' ? 'active' : ''} onClick={onClose}>Live</Link>
             <Link to="/invite" className={location.pathname === '/invite' ? 'active' : ''} onClick={onClose}>Invite</Link>
-            {import.meta.env.DEV && (
-              <Link to="/secret-login" className="dev-login" onClick={onClose} style={{ color: 'var(--accent)', fontWeight: 'bold', marginTop: '16px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
-                🔐 Dev Login
-              </Link>
-            )}
+            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme" style={{ background: 'var(--accent)', border: 'none', textAlign: 'center', cursor: 'pointer', padding: '10px 16px', width: '100%', color: 'var(--text)', fontFamily: 'inherit' }}>
+              {theme === 'dark' ? '🌙 Dark' : '🌞 Light'}
+            </button>
+            <AuthControls onClose={onClose} />
           </>
         )}
       </nav>
-
-      <div className="sidebar-footer">
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-              {theme === 'dark' ? '🌙 Dark' : '🌞 Light'}
-            </button>
-
-          <AuthControls onClose={onClose} />
-        </div>
-      </div>
       </aside>
     </>
   );
@@ -71,6 +64,6 @@ function AuthControls({ onClose }) {
   };
 
   return (
-    <button onClick={handleSignOut} className="btn">Sign out</button>
+    <button onClick={handleSignOut} style={{ background: 'var(--accent)', border: 'none', textAlign: 'center', cursor: 'pointer', padding: '10px 16px', width: '100%', color: 'var(--text)', fontFamily: 'inherit' }}>🚪 Sign out</button>
   );
 }

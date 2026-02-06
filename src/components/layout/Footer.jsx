@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export default function Footer() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [iconClicks, setIconClicks] = useState(0);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isPublicPage = !location.pathname.startsWith('/dashboard');
 
   useEffect(() => {
     const handler = (e) => {
@@ -48,10 +50,20 @@ export default function Footer() {
       {deferredPrompt && (
         <button onClick={installApp}>Install App</button>
       )}
-      <div onClick={handleCopyrightClick} style={{ display: 'flex', gap: '1rem', alignItems: 'center', cursor: 'inherit', padding: '0.5rem', marginLeft: '-0.5rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
         <div>© Fabris Thee Luo Poet</div>
-        {showAdminLink && (
-          <Link to="/secret-login" style={{ fontSize: '12px', color: 'var(--accent)', textDecoration: 'none', padding: '4px 8px', borderRadius: '4px', background: 'rgba(255,255,255,0.1)' }} onClick={(e) => { e.stopPropagation(); setCopyrightClicks(0); setShowAdminLink(false); }}>🔐 Admin</Link>
+        {isPublicPage && (
+          <div 
+            onClick={handleIconClick}
+            style={{ 
+              cursor: 'inherit', 
+              fontSize: '16px', 
+              userSelect: 'none',
+              opacity: 0.6
+            }}
+          >
+            🔒
+          </div>
         )}
       </div>
     </footer>

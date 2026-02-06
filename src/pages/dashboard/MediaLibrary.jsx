@@ -5,11 +5,13 @@ export default function DashboardMediaLibrary() {
   const { mediaAssets = [], deleteMediaAsset } = useDashboardContext();
   const [filter, setFilter] = useState('all'); // 'all', 'images', 'videos'
 
-  const filtered = (mediaAssets || []).filter(m => {
-    if (filter === 'images') return !m.file_url.match(/\.(mp4|webm|mov|avi)$/i);
-    if (filter === 'videos') return m.file_url.match(/\.(mp4|webm|mov|avi)$/i);
-    return true;
-  });
+  const filtered = (mediaAssets || [])
+    .sort((a, b) => new Date(b.created_at || b.updated_at) - new Date(a.created_at || a.updated_at))
+    .filter(m => {
+      if (filter === 'images') return !m.file_url.match(/\.(mp4|webm|mov|avi)$/i);
+      if (filter === 'videos') return m.file_url.match(/\.(mp4|webm|mov|avi)$/i);
+      return true;
+    });
 
   const handleDelete = async (id) => {
     if (confirm('Delete this media?')) {

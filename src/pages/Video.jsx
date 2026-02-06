@@ -22,8 +22,52 @@ export default function Video() {
   const [embedLoading, setEmbedLoading] = useState(false);
   const [showReflectionForm, setShowReflectionForm] = useState(false);
   const [reflectionForm, setReflectionForm] = useState({ name: '', anonymous: false, message: '' });
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState(null);
 
   const video = videos.find(v => v.id == id);
+  const currentIndex = videos.findIndex(v => v.id == id);
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < videos.length - 1;
+  const previousVideo = hasPrevious ? videos[currentIndex - 1] : null;
+  const nextVideo = hasNext ? videos[currentIndex + 1] : null;
+
+  // Reset transition state when id changes
+  useEffect(() => {
+    setIsTransitioning(false);
+    setTransitionDirection(null);
+  }, [id]);
+
+  // Handle navigation with transition - navigate immediately
+  const navigateWithTransition = (videoId, direction) => {
+    setTransitionDirection(direction);
+    setIsTransitioning(true);
+    // Wait for animation to complete before navigating
+    setTimeout(() => {
+      navigate(`/videos/${videoId}`);
+    }, 300);
+  };
+
+  // Handle swipe gestures
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    setTouchEnd(e.changedTouches[0].clientX);
+    if (touchStart !== null) {
+      const distance = touchStart - e.changedTouches[0].clientX;
+      if (Math.abs(distance) > 50) { // Swipe threshold
+        if (distance > 0 && hasNext) {
+          navigateWithTransition(nextVideo.id, 'next');
+        } else if (distance < 0 && hasPrevious) {
+          navigateWithTransition(previousVideo.id, 'prev');
+        }
+      }
+    }
+  };
 
   // Filter reflections for this video
   const reflectionsFor = (videoId) =>
@@ -120,8 +164,30 @@ export default function Video() {
   }
 
   return (
-    <div className="page">
-      <button onClick={() => navigate('/videos')} style={{ marginBottom: 16, cursor: 'pointer' }}>← Back to Videos</button>
+    <div className="page" style={{ overflow: 'hidden' }}>
+      <div style={{ 
+        transform: transitionDirection === 'next' ? 'translateX(-100%)' : (transitionDirection === 'prev' ? 'translateX(100%)' : 'translateX(0)'),
+        transition: isTransitioning ? 'transform 0.3s ease-in-out' : 'none'
+      }} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <button onClick={() => navigate('/videos')} style={{ cursor: 'pointer' }}>← Back to Videos</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button 
+              onClick={() => hasPrevious && navigateWithTransition(previousVideo.id, 'prev')} 
+              disabled={!hasPrevious}
+              style={{ cursor: hasPrevious ? 'pointer' : 'not-allowed', opacity: hasPrevious ? 1 : 0.5 }}
+            >
+              ← Previous
+            </button>
+            <button 
+              onClick={() => hasNext && navigateWithTransition(nextVideo.id, 'next')} 
+              disabled={!hasNext}
+              style={{ cursor: hasNext ? 'pointer' : 'not-allowed', opacity: hasNext ? 1 : 0.5 }}
+            >
+              Next →
+            </button>
+          </div>
+        </div>
 
       {/* YouTube: Standard iframe */}
       {(video.youtube_url?.includes('youtube.com') || video.youtube_url?.includes('youtu.be') || video.youtubeId) && (
@@ -213,6 +279,7 @@ export default function Video() {
               <div style={{ marginTop: 8 }}>{body}</div>
             </div>
           )})}
+        </div>
 
           {!showReflectionForm && <div style={{ marginTop: 10 }}><button className="btn-primary" onClick={() => setShowReflectionForm(true)}>Leave a Reflection</button></div>}
 

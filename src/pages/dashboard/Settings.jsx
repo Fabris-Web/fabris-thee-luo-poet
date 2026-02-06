@@ -79,24 +79,11 @@ export default function DashboardSettings() {
           }}
         />
       )}
-      <div className="card">
-        <h3>Profile Image</h3>
-        <form style={{ display: 'grid', gap: 8 }} onSubmit={(e) => { e.preventDefault(); handleSaveProfile(); }}>
-          <label>Upload profile image (you'll crop it next)
-            <input type="file" accept="image/*" onChange={handleFileSelect} disabled={uploading || showCropper} />
-          </label>
-          {preview && (
-            <div style={{ marginTop: 8 }}>
-              <p style={{ fontSize: 12, color: 'var(--muted)' }}>Preview (rounded):</p>
-              <div style={{ width: 140, height: 140, borderRadius: '50%', overflow: 'hidden', border: '2px solid var(--accent)' }}>
-                <img src={preview} alt="profile preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              </div>
-            </div>
-          )}
-          <button type="submit" className="btn-primary" disabled={uploading || !preview}>
-            {uploading ? 'Saving...' : 'Save Profile Image'}
-          </button>
-        </form>
+
+      <div className="card" style={{ background: 'var(--surface)', borderLeft: '4px solid var(--accent)', padding: 12 }}>
+        <h3 style={{ margin: '0 0 8px 0' }}>👤 Profile Photos Moved</h3>
+        <p style={{ margin: '4px 0', color: 'var(--muted)' }}>Profile photo uploads and management has been moved to the <strong>Media Upload</strong> section.</p>
+        <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--muted)' }}>There you can upload new profile photos, view previous versions, and switch between them.</p>
       </div>
     </div>
   );

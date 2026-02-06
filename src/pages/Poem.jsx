@@ -10,10 +10,55 @@ export default function PoemPage(){
   const { data: comments = [], refetch: refetchComments } = useSupabaseQuery('comments');
   
   const poem = (poemsData || []).find(p => String(p.id) === String(id)) || null;
+  const currentIndex = (poemsData || []).findIndex(p => String(p.id) === String(id));
+  const hasPrevious = currentIndex > 0;
+  const hasNext = currentIndex < (poemsData || []).length - 1;
+  const previousPoem = hasPrevious ? poemsData[currentIndex - 1] : null;
+  const nextPoem = hasNext ? poemsData[currentIndex + 1] : null;
+
   console.debug('PoemPage debug:', { id, poemsDataLength: (poemsData || []).length, found: !!poem });
 
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ name: '', anonymous: false, body: '' });
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [transitionDirection, setTransitionDirection] = useState(null);
+
+  // Reset transition state when id changes
+  useEffect(() => {
+    setIsTransitioning(false);
+    setTransitionDirection(null);
+  }, [id]);
+
+  // Handle navigation with transition - navigate immediately
+  const navigateWithTransition = (poemId, direction) => {
+    setTransitionDirection(direction);
+    setIsTransitioning(true);
+    // Wait for animation to complete before navigating
+    setTimeout(() => {
+      navigate(`/poems/${poemId}`);
+    }, 300);
+  };
+
+  // Handle swipe gestures
+  const handleTouchStart = (e) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = (e) => {
+    setTouchEnd(e.changedTouches[0].clientX);
+    if (touchStart !== null) {
+      const distance = touchStart - e.changedTouches[0].clientX;
+      if (Math.abs(distance) > 50) { // Swipe threshold
+        if (distance > 0 && hasNext) {
+          navigateWithTransition(nextPoem.id, 'next');
+        } else if (distance < 0 && hasPrevious) {
+          navigateWithTransition(previousPoem.id, 'prev');
+        }
+      }
+    }
+  };
 
   // If an id was provided but no poem found, redirect to the first available poem.
   useEffect(() => {
@@ -70,12 +115,30 @@ export default function PoemPage(){
   );
 
   return (
-    <div className="page">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <button onClick={() => navigate(-1)}>← Back</button>
-        <h1 style={{ margin: 0 }}>{poem.title}</h1>
-        <div />
-      </div>
+    <div className="page" style={{ overflow: 'hidden' }}>
+      <div style={{ 
+        transform: transitionDirection === 'next' ? 'translateX(-100%)' : (transitionDirection === 'prev' ? 'translateX(100%)' : 'translateX(0)'),
+        transition: isTransitioning ? 'transform 0.3s ease-in-out' : 'none'
+      }} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <button onClick={() => navigate(-1)}>← Back</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button 
+              onClick={() => hasPrevious && navigateWithTransition(previousPoem.id, 'prev')} 
+              disabled={!hasPrevious}
+              style={{ cursor: hasPrevious ? 'pointer' : 'not-allowed', opacity: hasPrevious ? 1 : 0.5 }}
+            >
+              ← Previous
+            </button>
+            <button 
+              onClick={() => hasNext && navigateWithTransition(nextPoem.id, 'next')} 
+              disabled={!hasNext}
+              style={{ cursor: hasNext ? 'pointer' : 'not-allowed', opacity: hasNext ? 1 : 0.5 }}
+            >
+              Next →
+            </button>
+          </div>
+        </div>
 
       <section style={{ marginTop: 12 }}>
         {poem.image && (
@@ -122,6 +185,7 @@ export default function PoemPage(){
           )}
         </div>
       </section>
+      </div>
     </div>
   );
 }
