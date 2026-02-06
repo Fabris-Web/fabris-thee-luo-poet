@@ -16,7 +16,6 @@ import DashboardLive from "../pages/dashboard/Live";
 import DashboardComments from "../pages/dashboard/Comments";
 import DashboardInvites from "../pages/dashboard/Invites";
 import DashboardNotifications from "../pages/dashboard/Notifications";
-import DashboardMedia from "../pages/dashboard/Media";
 import DashboardMediaLibrary from "../pages/dashboard/MediaLibrary";
 import DashboardSettings from "../pages/dashboard/Settings";
 
@@ -40,7 +39,6 @@ export default function AppRoutes() {
         <Route path="comments" element={<DashboardComments />} />
         <Route path="invites" element={<DashboardInvites />} />
         <Route path="notifications" element={<DashboardNotifications />} />
-        <Route path="upload" element={<DashboardMedia />} />
         <Route path="library" element={<DashboardMediaLibrary />} />
         <Route path="settings" element={<DashboardSettings />} />
       </Route>

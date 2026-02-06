@@ -22,7 +22,6 @@ export default function Sidebar({ open, onClose }) {
             <Link to="/dashboard/comments" className={location.pathname === '/dashboard/comments' ? 'active' : ''} onClick={onClose}>💬 Comments</Link>
             <Link to="/dashboard/invites" className={location.pathname === '/dashboard/invites' ? 'active' : ''} onClick={onClose}>📩 Invites</Link>
             <Link to="/dashboard/notifications" className={location.pathname === '/dashboard/notifications' ? 'active' : ''} onClick={onClose}>🔔 Notifications</Link>
-            <Link to="/dashboard/upload" className={location.pathname === '/dashboard/upload' ? 'active' : ''} onClick={onClose}>📤 Upload</Link>
             <Link to="/dashboard/library" className={location.pathname === '/dashboard/library' ? 'active' : ''} onClick={onClose}>📚 Library</Link>
             <Link to="/dashboard/settings" className={location.pathname === '/dashboard/settings' ? 'active' : ''} onClick={onClose}>⚙️ Settings</Link>
             <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme" style={{ background: 'var(--accent)', border: 'none', textAlign: 'center', cursor: 'pointer', padding: '10px 16px', width: '100%', color: 'var(--text)', fontFamily: 'inherit' }}>

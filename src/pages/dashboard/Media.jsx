@@ -11,7 +11,17 @@ export default function DashboardMedia() {
   const [tab, setTab] = useState('posts'); // 'posts', 'videos', 'profile'
 
   const profile = profiles?.[0];
-  const photoHistory = profile?.photo_history || [];
+  // Handle both old format (profile_image string) and new format (photo_history array)
+  let photoHistory = profile?.photo_history || [];
+  
+  // If photo_history is empty but profile_image exists, convert it to new format
+  if (photoHistory.length === 0 && profile?.profile_image) {
+    photoHistory = [{
+      url: profile.profile_image,
+      uploaded_at: profile.updated_at || profile.created_at,
+      is_active: true
+    }];
+  }
   const activePhoto = photoHistory.find(p => p.is_active);
 
   return (
@@ -171,8 +181,19 @@ function ProfilePhotos() {
 
   // Sync photoHistory when profile data changes
   useEffect(() => {
-    setPhotoHistory(profile?.photo_history || []);
-  }, [profile?.photo_history]);
+    let history = profile?.photo_history || [];
+    
+    // If no photo_history but profile_image exists, convert it
+    if (history.length === 0 && profile?.profile_image) {
+      history = [{
+        url: profile.profile_image,
+        uploaded_at: profile.updated_at || profile.created_at,
+        is_active: true
+      }];
+    }
+    
+    setPhotoHistory(history);
+  }, [profile?.photo_history, profile?.profile_image]);
 
 
   const handleUploadProfilePhoto = async (e) => {

@@ -11,14 +11,13 @@ function titleFromPath(pathname) {
   // handle /dashboard subroutes
   if (segments[0] === 'dashboard') {
     if (segments.length === 1) return 'Dashboard';
-    const map = {
+      const map = {
       poems: 'Poems',
       videos: 'Videos',
       live: 'Live',
       comments: 'Comments',
       invites: 'Invites',
       notifications: 'Notifications',
-      upload: 'Upload',
       settings: 'Settings',
     };
     return map[segments[1]] || 'Dashboard';

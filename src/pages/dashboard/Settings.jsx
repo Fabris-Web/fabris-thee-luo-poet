@@ -82,7 +82,7 @@ export default function DashboardSettings() {
 
       <div className="card" style={{ background: 'var(--surface)', borderLeft: '4px solid var(--accent)', padding: 12 }}>
         <h3 style={{ margin: '0 0 8px 0' }}>👤 Profile Photos Moved</h3>
-        <p style={{ margin: '4px 0', color: 'var(--muted)' }}>Profile photo uploads and management has been moved to the <strong>Media Upload</strong> section.</p>
+        <p style={{ margin: '4px 0', color: 'var(--muted)' }}>Profile photo uploads and management has been moved to the <strong>Library</strong> page.</p>
         <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: 'var(--muted)' }}>There you can upload new profile photos, view previous versions, and switch between them.</p>
       </div>
     </div>
