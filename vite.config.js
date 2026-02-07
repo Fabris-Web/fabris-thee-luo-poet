@@ -15,3 +15,7 @@ VitePWA({
     display: 'standalone',
   }
 })
+[build]
+base = "."
+publish = "dist"      # adjust to your actual publish folder
+command = "npm run build"
